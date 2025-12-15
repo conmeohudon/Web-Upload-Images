@@ -1,18 +1,21 @@
-import { Navigate } from 'react-router-dom';
-import { useAuth } from '../contexts/AuthContext';
+import { Navigate, useLocation } from "react-router-dom";
+import { useAuth } from "../contexts/AuthContext";
 
 export const PrivateRoute = ({ children }) => {
+    const { isAuthenticated, loading } = useAuth();
+    const location = useLocation();
 
-    const { user, loading } = useAuth();
-    if (loading) return <div>Loading...</div>;
-    return user ? children : <Navigate to="/login" />;
-};
+    if (loading) {
+        return (
+            <div className="min-h-screen flex items-center justify-center text-xl font-semibold">
+                Đang tải...
+            </div>
+        );
+    }
 
-export const AdminRoute = ({ children }) => {
+    if (!isAuthenticated) {
+        return <Navigate to="/login" replace state={{ from: location.pathname }} />;
+    }
 
-    const { user, loading } = useAuth();
-    if (loading) return <div>Loading...</div>;
-    if (!user) return <Navigate to="/admin" />;
-    if (user.role !== 'admin') return <Navigate to="/" />;
     return children;
 };
