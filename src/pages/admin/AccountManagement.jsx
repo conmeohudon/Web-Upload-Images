@@ -1,184 +1,14 @@
 import { useEffect, useState } from "react";
+import bcrypt from 'bcryptjs';
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import { accountService } from "../../services/accountService.js";
+import AccountFormModal from "../../components/common/AccountFormModal.jsx"; 
+import DeleteConfirmModal from "../../components/common/DeleteConfirmModal.jsx"; 
+import Pagination from "../../components/common/Pagination.jsx";
 
-// Component Modal Wrapper
-function Modal({ isOpen, onClose, children }) {
-    if (!isOpen) return null;
-    
-    return (
-        <div 
-            className="fixed inset-0 bg-opacity-40 flex items-center justify-center z-50 p-4"
-            onClick={onClose}
-        >
-            <div 
-                className="bg-white rounded-xl shadow-2xl p-4 sm:p-6 w-full max-w-md max-h-[90vh] overflow-y-auto"
-                onClick={(e) => e.stopPropagation()}
-            >
-                {children}
-            </div>
-        </div>
-    );
-}
+const SALT_ROUNDS = 10;
 
-// Component Form Input
-function FormInput({ label, error, required, ...props }) {
-    return (
-        <div>
-            <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1">
-                {label} {required && <span className="text-red-500">*</span>}
-            </label>
-            <input
-                className={`block w-full px-3 sm:px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 transition-colors text-sm sm:text-base ${
-                    error ? 'border-red-500 focus:ring-red-500' : 'border-gray-300 focus:ring-blue-500'
-                }`}
-                {...props}
-            />
-            {error && (
-                <p className="mt-1 text-xs sm:text-sm text-red-500">{error}</p>
-            )}
-        </div>
-    );
-}
-
-// Component Form Select
-function FormSelect({ label, error, required, children, ...props }) {
-    return (
-        <div>
-            <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1">
-                {label} {required && <span className="text-red-500">*</span>}
-            </label>
-            <select
-                className={`block w-full px-3 sm:px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 transition-colors bg-white text-sm sm:text-base ${
-                    error ? 'border-red-500 focus:ring-red-500' : 'border-gray-300 focus:ring-blue-500'
-                }`}
-                {...props}
-            >
-                {children}
-            </select>
-            {error && (
-                <p className="mt-1 text-xs sm:text-sm text-red-500">{error}</p>
-            )}
-        </div>
-    );
-}
-
-// Component Account Form Modal
-function AccountFormModal({ isOpen, onClose, onSubmit, form, setForm, errors, editingId }) {
-    return (
-        <Modal isOpen={isOpen} onClose={onClose}>
-            <h3 className="text-lg sm:text-xl font-semibold text-gray-800 mb-4">
-                {editingId ? "Update Account" : "Create New Account"}
-            </h3>
-            
-            {errors.submit && (
-                <div className="mb-4 p-3 bg-red-100 border border-red-400 text-red-700 rounded-lg text-sm">
-                    {errors.submit}
-                </div>
-            )}
-
-            <div className="space-y-3 sm:space-y-4">
-                <FormInput
-                    label="Username"
-                    required
-                    type="text"
-                    placeholder="Enter username"
-                    value={form.username}
-                    onChange={(e) => setForm({ ...form, username: e.target.value })}
-                    error={errors.username}
-                />
-
-                {!editingId && (
-                    <FormInput
-                        label="Email"
-                        required
-                        type="email"
-                        placeholder="Enter email"
-                        value={form.email}
-                        onChange={(e) => setForm({ ...form, email: e.target.value })}
-                        error={errors.email}
-                    />
-                )}
-
-                <FormInput
-                    label="Password"
-                    required
-                    type="password"
-                    placeholder="Enter password (min 6 characters)"
-                    value={form.password}
-                    onChange={(e) => setForm({ ...form, password: e.target.value })}
-                    error={errors.password}
-                />
-
-                <FormSelect
-                    label="Role"
-                    required
-                    value={form.role}
-                    onChange={(e) => setForm({ ...form, role: e.target.value })}
-                    error={errors.role}
-                >
-                    <option value="">Select a role</option>
-                    <option value="user">User</option>
-                    <option value="admin">Admin</option>
-                </FormSelect>
-
-                <FormSelect
-                    label="Status"
-                    value={form.status}
-                    onChange={(e) => setForm({ ...form, status: e.target.value })}
-                >
-                    <option value="active">Active</option>
-                    <option value="inactive">Inactive</option>
-                    <option value="suspended">Suspended</option>
-                </FormSelect>
-
-                <div className="flex flex-col sm:flex-row gap-3 pt-2">
-                    <button
-                        onClick={onSubmit}
-                        className="flex-1 bg-blue-600 text-white font-medium px-6 py-2 rounded-lg hover:bg-blue-700 transition-colors text-sm sm:text-base"
-                    >
-                        {editingId ? "Save Changes" : "Create Account"}
-                    </button>
-                    <button
-                        onClick={onClose}
-                        className="flex-1 bg-gray-400 text-white font-medium px-6 py-2 rounded-lg hover:bg-gray-500 transition-colors text-sm sm:text-base"
-                    >
-                        Cancel
-                    </button>
-                </div>
-            </div>
-        </Modal>
-    );
-}
-
-// Component Delete Confirmation Modal
-function DeleteConfirmModal({ isOpen, onClose, onConfirm }) {
-    return (
-        <Modal isOpen={isOpen} onClose={onClose}>
-            <h3 className="text-lg sm:text-xl font-semibold text-gray-800 mb-4">
-                Confirm Delete
-            </h3>
-            <p className="text-sm sm:text-base text-gray-600 mb-6">
-                Bạn có chắc muốn xóa tài khoản này không? Hành động này không thể hoàn tác.
-            </p>
-            <div className="flex flex-col sm:flex-row gap-3">
-                <button
-                    onClick={onConfirm}
-                    className="flex-1 bg-red-600 text-white font-medium px-6 py-2 rounded-lg hover:bg-red-700 transition-colors text-sm sm:text-base"
-                >
-                    Delete
-                </button>
-                <button
-                    onClick={onClose}
-                    className="flex-1 bg-gray-400 text-white font-medium px-6 py-2 rounded-lg hover:bg-gray-500 transition-colors text-sm sm:text-base"
-                >
-                    Cancel
-                </button>
-            </div>
-        </Modal>
-    );
-}
 
 // Component Search and Filter Bar
 function SearchFilterBar({ searchTerm, setSearchTerm, filterRole, setFilterRole }) {
@@ -275,60 +105,6 @@ function AccountTableRow({ account, currentUserId, onEdit, onDelete }) {
     );
 }
 
-// Component Pagination
-function Pagination({ currentPage, totalPages, indexOfFirstItem, indexOfLastItem, totalItems, onPageChange }) {
-    if (totalPages <= 1) return null;
-
-    return (
-        <div className="px-4 sm:px-6 py-4 border-t border-gray-200 flex flex-col sm:flex-row items-center justify-between gap-3">
-            <div className="text-xs sm:text-sm text-gray-700">
-                Showing <span className="font-medium">{indexOfFirstItem + 1}</span> to{' '}
-                <span className="font-medium">{Math.min(indexOfLastItem, totalItems)}</span>{' '}
-                of <span className="font-medium">{totalItems}</span> results
-            </div>
-            
-            <div className="flex gap-2">
-                <button
-                    onClick={() => onPageChange(currentPage - 1)}
-                    disabled={currentPage === 1}
-                    className={`px-2 sm:px-3 py-1 rounded-md text-xs sm:text-sm ${
-                        currentPage === 1
-                            ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
-                            : 'bg-white border border-gray-300 text-gray-700 hover:bg-gray-50'
-                    }`}
-                >
-                    Prev
-                </button>
-                
-                {[...Array(totalPages)].map((_, index) => (
-                    <button
-                        key={index + 1}
-                        onClick={() => onPageChange(index + 1)}
-                        className={`px-2 sm:px-3 py-1 rounded-md text-xs sm:text-sm ${
-                            currentPage === index + 1
-                                ? 'bg-blue-600 text-white'
-                                : 'bg-white border border-gray-300 text-gray-700 hover:bg-gray-50'
-                        }`}
-                    >
-                        {index + 1}
-                    </button>
-                ))}
-                
-                <button
-                    onClick={() => onPageChange(currentPage + 1)}
-                    disabled={currentPage === totalPages}
-                    className={`px-2 sm:px-3 py-1 rounded-md text-xs sm:text-sm ${
-                        currentPage === totalPages
-                            ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
-                            : 'bg-white border border-gray-300 text-gray-700 hover:bg-gray-50'
-                    }`}
-                >
-                    Next
-                </button>
-            </div>
-        </div>
-    );
-}
 
 // Main Component
 function AccountManagement() {
@@ -396,10 +172,13 @@ function AccountManagement() {
             }
         }
 
-        if (!form.password) {
-            newErrors.password = "Password is required";
-        } else if (form.password.length < 6) {
-            newErrors.password = "Password must be at least 6 characters";
+        // Chỉ validate password nếu đang tạo mới hoặc có nhập password khi edit
+        if (!editingId || form.password) {
+            if (!form.password) {
+                newErrors.password = "Password is required";
+            } else if (form.password.length < 6) {
+                newErrors.password = "Password must be at least 6 characters";
+            }
         }
 
         if (!form.role) {
@@ -418,9 +197,29 @@ function AccountManagement() {
         }
 
         try {
+            let dataToSubmit = { ...form };
+            
+            // Hash password nếu có password mới
+            if (form.password) {
+                toast.info('🔐 Hashing password...', {
+                    position: "top-right",
+                    autoClose: 1000,
+                    hideProgressBar: false,
+                    closeOnClick: true,
+                    pauseOnHover: true,
+                    draggable: true,
+                });
+                
+                const hashedPassword = await bcrypt.hash(form.password, SALT_ROUNDS);
+                dataToSubmit.password = hashedPassword;
+            } else if (editingId) {
+                // Nếu edit và không nhập password mới, giữ password cũ
+                delete dataToSubmit.password;
+            }
+
             if (editingId) {
-                await accountService.update(editingId, form);
-                toast.success('Account updated successfully!', {
+                await accountService.update(editingId, dataToSubmit);
+                toast.success('✅ Account updated successfully!', {
                     position: "top-right",
                     autoClose: 3000,
                     hideProgressBar: false,
@@ -429,8 +228,8 @@ function AccountManagement() {
                     draggable: true,
                 });
             } else {
-                await accountService.create(form);
-                toast.success('Account created successfully!', {
+                await accountService.create(dataToSubmit);
+                toast.success('✅ Account created successfully!', {
                     position: "top-right",
                     autoClose: 3000,
                     hideProgressBar: false,
@@ -447,7 +246,7 @@ function AccountManagement() {
             loadAccounts();
         } catch (error) {
             console.error("Error submitting form:", error);
-            toast.error('An error occurred. Please try again.', {
+            toast.error('❌ An error occurred. Please try again.', {
                 position: "top-right",
                 autoClose: 3000,
                 hideProgressBar: false,
@@ -461,7 +260,7 @@ function AccountManagement() {
 
     const handleDelete = async (id) => {
         if (id === currentUserId) {
-            toast.warning('You cannot delete the currently logged-in account!', {
+            toast.warning('⚠️ You cannot delete the currently logged-in account!', {
                 position: "top-right",
                 autoClose: 3000,
                 hideProgressBar: false,
@@ -477,7 +276,7 @@ function AccountManagement() {
     const confirmDelete = async () => {
         try {
             await accountService.delete(deleteId);
-            toast.success('Account deleted successfully!', {
+            toast.success('✅ Account deleted successfully!', {
                 position: "top-right",
                 autoClose: 3000,
                 hideProgressBar: false,
@@ -489,7 +288,7 @@ function AccountManagement() {
             loadAccounts();
         } catch (error) {
             console.error("Error deleting account:", error);
-            toast.error('Failed to delete account. Please try again.', {
+            toast.error('❌ Failed to delete account. Please try again.', {
                 position: "top-right",
                 autoClose: 3000,
                 hideProgressBar: false,
@@ -505,7 +304,7 @@ function AccountManagement() {
         setForm({
             username: acc.username,
             email: acc.email,
-            password: acc.password,
+            password: "", // Để trống để user có thể giữ nguyên password cũ
             role: acc.role,
             status: acc.status
         });

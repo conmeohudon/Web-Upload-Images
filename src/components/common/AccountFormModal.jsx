@@ -1,103 +1,151 @@
-import React from "react";
+import { useEffect, useState } from "react";
 
-function AccountFormModal({ 
-    show, 
-    form, 
-    editingId, 
-    setForm, 
-    onSubmit, 
-    onCancel 
-}) {
-    if (!show) return null;
-
+// Component Modal Wrapper
+function Modal({ isOpen, onClose, children }) {
+    if (!isOpen) return null;
+    
     return (
         <div 
-            className="fixed inset-0 bg-opacity-40 flex items-center justify-center z-50"
-            onClick={onCancel}
+            className="fixed inset-0 bg-opacity-40 flex items-center justify-center z-50 p-4"
+            onClick={onClose}
         >
             <div 
-                className="bg-white rounded-xl shadow-2xl p-6 w-full max-w-md mx-4"
+                className="bg-white rounded-xl shadow-2xl p-4 sm:p-6 w-full max-w-md max-h-[90vh] overflow-y-auto"
                 onClick={(e) => e.stopPropagation()}
             >
-                <h3 className="text-xl font-semibold text-gray-800 mb-4">
-                    {editingId ? "Update Account" : "Create New Account"}
-                </h3>
-
-                <form onSubmit={onSubmit} className="space-y-4">
-
-                    <input
-                        type="text"
-                        placeholder="Username"
-                        className="block w-full px-4 py-2 border rounded-lg"
-                        value={form.username}
-                        onChange={(e) => setForm({ ...form, username: e.target.value })}
-                        required
-                    />
-
-                    {!editingId && (
-                        <input
-                            type="email"
-                            placeholder="Email"
-                            className="block w-full px-4 py-2 border rounded-lg"
-                            value={form.email}
-                            onChange={(e) => setForm({ ...form, email: e.target.value })}
-                            required
-                        />
-                    )}
-
-                    <input
-                        type="password"
-                        placeholder="Password"
-                        className="block w-full px-4 py-2 border rounded-lg"
-                        value={form.password}
-                        onChange={(e) => setForm({ ...form, password: e.target.value })}
-                        required
-                    />
-
-                    <select
-                        className="block w-full px-4 py-2 border rounded-lg"
-                        value={form.role}
-                        onChange={(e) => setForm({ ...form, role: e.target.value })}
-                        required
-                    >
-                        <option value="">Select role</option>
-                        <option value="user">User</option>
-                        <option value="admin">Admin</option>
-                    </select>
-
-                    {editingId && (
-                        <select
-                            className="block w-full px-4 py-2 border rounded-lg"
-                            value={form.status}
-                            onChange={(e) => setForm({ ...form, status: e.target.value })}
-                        >
-                            <option value="active">Active</option>
-                            <option value="inactive">Inactive</option>
-                            <option value="suspended">Suspended</option>
-                        </select>
-                    )}
-
-                    <div className="flex gap-3">
-                        <button
-                            type="submit"
-                            className="flex-1 bg-blue-600 text-white py-2 rounded-lg"
-                        >
-                            {editingId ? "Save Changes" : "Create"}
-                        </button>
-
-                        <button
-                            type="button"
-                            onClick={onCancel}
-                            className="flex-1 bg-gray-400 text-white py-2 rounded-lg"
-                        >
-                            Cancel
-                        </button>
-                    </div>
-
-                </form>
+                {children}
             </div>
         </div>
     );
 }
 
+// Component Form Input
+function FormInput({ label, error, required, ...props }) {
+    return (
+        <div>
+            <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1">
+                {label} {required && <span className="text-red-500">*</span>}
+            </label>
+            <input
+                className={`block w-full px-3 sm:px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 transition-colors text-sm sm:text-base ${
+                    error ? 'border-red-500 focus:ring-red-500' : 'border-gray-300 focus:ring-blue-500'
+                }`}
+                {...props}
+            />
+            {error && (
+                <p className="mt-1 text-xs sm:text-sm text-red-500">{error}</p>
+            )}
+        </div>
+    );
+}
+
+// Component Form Select
+function FormSelect({ label, error, required, children, ...props }) {
+    return (
+        <div>
+            <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1">
+                {label} {required && <span className="text-red-500">*</span>}
+            </label>
+            <select
+                className={`block w-full px-3 sm:px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 transition-colors bg-white text-sm sm:text-base ${
+                    error ? 'border-red-500 focus:ring-red-500' : 'border-gray-300 focus:ring-blue-500'
+                }`}
+                {...props}
+            >
+                {children}
+            </select>
+            {error && (
+                <p className="mt-1 text-xs sm:text-sm text-red-500">{error}</p>
+            )}
+        </div>
+    );
+}
+
+// Component Account Form Modal
+function AccountFormModal({ isOpen, onClose, onSubmit, form, setForm, errors, editingId }) {
+    return (
+        <Modal isOpen={isOpen} onClose={onClose}>
+            <h3 className="text-lg sm:text-xl font-semibold text-gray-800 mb-4">
+                {editingId ? "Update Account" : "Create New Account"}
+            </h3>
+            
+            {errors.submit && (
+                <div className="mb-4 p-3 bg-red-100 border border-red-400 text-red-700 rounded-lg text-sm">
+                    {errors.submit}
+                </div>
+            )}
+
+            <div className="space-y-3 sm:space-y-4">
+                <FormInput
+                    label="Username"
+                    required
+                    type="text"
+                    placeholder="Enter username"
+                    value={form.username}
+                    onChange={(e) => setForm({ ...form, username: e.target.value })}
+                    error={errors.username}
+                />
+
+                {!editingId && (
+                    <FormInput
+                        label="Email"
+                        required
+                        type="email"
+                        placeholder="Enter email"
+                        value={form.email}
+                        onChange={(e) => setForm({ ...form, email: e.target.value })}
+                        error={errors.email}
+                    />
+                )}
+
+                <FormInput
+                    label="Password"
+                    required
+                    type="password"
+                    placeholder="Enter password (min 6 characters)"
+                    value={form.password}
+                    onChange={(e) => setForm({ ...form, password: e.target.value })}
+                    error={errors.password}
+                />
+
+                <FormSelect
+                    label="Role"
+                    required
+                    value={form.role}
+                    onChange={(e) => setForm({ ...form, role: e.target.value })}
+                    error={errors.role}
+                >
+                    <option value="">Select a role</option>
+                    <option value="user">User</option>
+                    <option value="admin">Admin</option>
+                </FormSelect>
+
+                <FormSelect
+                    label="Status"
+                    value={form.status}
+                    onChange={(e) => setForm({ ...form, status: e.target.value })}
+                >
+                    <option value="active">Active</option>
+                    <option value="inactive">Inactive</option>
+                    <option value="suspended">Suspended</option>
+                </FormSelect>
+
+                <div className="flex flex-col sm:flex-row gap-3 pt-2">
+                    <button
+                        onClick={onSubmit}
+                        className="flex-1 bg-blue-600 text-white font-medium px-6 py-2 rounded-lg hover:bg-blue-700 transition-colors text-sm sm:text-base"
+                    >
+                        {editingId ? "Save Changes" : "Create Account"}
+                    </button>
+                    <button
+                        onClick={onClose}
+                        className="flex-1 bg-gray-400 text-white font-medium px-6 py-2 rounded-lg hover:bg-gray-500 transition-colors text-sm sm:text-base"
+                    >
+                        Cancel
+                    </button>
+                </div>
+            </div>
+        </Modal>
+    );
+}
 export default AccountFormModal;
