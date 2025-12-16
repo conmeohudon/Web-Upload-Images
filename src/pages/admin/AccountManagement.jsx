@@ -201,15 +201,6 @@ function AccountManagement() {
             
             // Hash password nếu có password mới
             if (form.password) {
-                toast.info('🔐 Hashing password...', {
-                    position: "top-right",
-                    autoClose: 1000,
-                    hideProgressBar: false,
-                    closeOnClick: true,
-                    pauseOnHover: true,
-                    draggable: true,
-                });
-                
                 const hashedPassword = await bcrypt.hash(form.password, SALT_ROUNDS);
                 dataToSubmit.password = hashedPassword;
             } else if (editingId) {

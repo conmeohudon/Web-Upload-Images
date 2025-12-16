@@ -1,3 +1,27 @@
+function Modal({ isOpen, onClose, children, size = "md" }) {
+    if (!isOpen) return null;
+    
+    const sizeClasses = {
+        sm: "max-w-sm",
+        md: "max-w-md",
+        lg: "max-w-lg"
+    };
+    
+    return (
+        <div 
+            className="fixed inset-0 bg-opacity-40 flex items-center justify-center z-50 p-4"
+            onClick={onClose}
+        >
+            <div 
+                className={`bg-white rounded-xl shadow-2xl p-4 sm:p-6 w-full ${sizeClasses[size]} max-h-[90vh] overflow-y-auto`}
+                onClick={(e) => e.stopPropagation()}
+            >
+                {children}
+            </div>
+        </div>
+    );
+}
+
 function DeleteConfirmProjectModal({ isOpen, onClose, onConfirm, project, deleteImages, setDeleteImages }) {
     if (!project) return null;
     
