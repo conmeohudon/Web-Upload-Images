@@ -19,28 +19,30 @@ export const App = () => {
     const location = useLocation();
     const isLoginPage = location.pathname === '/login';
     return (
-            <AuthProvider>
-                {!isLoginPage && <Header />}
-                <div>
-                    {!isLoginPage && <Sidebar />}
-                    <main className="min-h-[80vh] bg-gray-50">
+        <AuthProvider>
+            {!isLoginPage && <Header />}
+            <div>
+                {!isLoginPage && <Sidebar />}
+                <main className="min-h-[80vh] bg-gray-50">
                     <Routes>
                         <Route path="/login" element={<Login />} />
+                        <Route path="/" element={<Navigate to="/projectselection" replace />} />
                         <Route path="/admin/dashboard" element={<AdminRoute><Dashboard /></AdminRoute>} />
                         <Route path="/admin/accountmanagement" element={<AdminRoute><AccountManagement /></AdminRoute>} />
                         <Route path="/admin/projectmanagement" element={<AdminRoute><ProjectManagement /></AdminRoute>} />
                         <Route path="/admin/allimages" element={<AdminRoute><AllImagesView /></AdminRoute>} />
+
                         <Route path="/projectselection" element={<PrivateRoute><ProjectSelection /></PrivateRoute>} />
                         <Route path="/imageupload" element={<PrivateRoute><ImageUpload /></PrivateRoute>} />
                         <Route path="/imageupload/:projectId" element={<PrivateRoute><ImageUpload /></PrivateRoute>} />
                         <Route path="/gallery" element={<PrivateRoute><Gallery /></PrivateRoute>} />
-                            
-                        <Route path="*" element={<div className="text-center ml-64 mt-16 mb-20 p-8 text-red-500">404 - Trang không tồn tại</div>} />
+
+                        <Route path="*" element={<Navigate to="/login" replace />} />
                     </Routes>
                     {!isLoginPage && <Footer />}
                 </main>
-                </div>
-                
-            </AuthProvider>
+            </div>
+
+        </AuthProvider>
     );
 };

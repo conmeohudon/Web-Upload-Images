@@ -15,16 +15,15 @@ export const AdminRoute = ({ children }) => {
 
     if (!isAuthenticated) {
         return (
-            <Navigate 
-                to="/login" 
-                replace 
-                state={{ from: location.pathname }} 
+            <Navigate
+                to="/login"
+                replace
+                state={{ from: location }}
             />
         );
     }
-
     if (!isAdmin) {
-        return <Navigate to="/" replace />;
+        return <Navigate to="/projectselection" replace />;
     }
 
     return children;
