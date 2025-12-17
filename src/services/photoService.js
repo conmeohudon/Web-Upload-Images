@@ -1,7 +1,8 @@
 import axios from "axios";
 import { FALLBACK_BASE64, convertToBase64 } from "../utils/imageHelper";
+import { API_ENDPOINTS } from '../config/api';
 
-const API_URL = "http://localhost:3004/photos";
+const API_URL = API_ENDPOINTS.photos;
 
 export const photoService = {
 

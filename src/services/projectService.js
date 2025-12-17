@@ -1,7 +1,8 @@
 import axios from 'axios';
+import { API_ENDPOINTS } from '../config/api';
 
-const API_URL = 'http://localhost:3004/projects';
-const PHOTOS_API_URL = 'http://localhost:3004/photos';
+const API_URL = API_ENDPOINTS.projects;
+const PHOTOS_API_URL = API_ENDPOINTS.photos;
 
 export const projectService = {
     getAll: async () => {

@@ -1,7 +1,7 @@
 import axios from 'axios';
+import { API_ENDPOINTS } from '../config/api';
 
-// Đặt base URL của JSON Server
-const API_URL = 'http://localhost:3004/accounts';
+const API_URL = API_ENDPOINTS.accounts;
 
 export const accountService = {
     getAll: async () => {
