@@ -11,12 +11,11 @@ try {
 } catch (e) {
   // Fallback nếu process không tồn tại
   DEV_URL = 'http://localhost:3004';
-  PROD_URL = 'https://json-server-backend-r911.onrender.com';
+  PROD_URL = 'https://json-server-backend-2-oop0.onrender.com';
   NODE_ENV = 'production';
 }
 
-// Chọn URL dựa vào môi trường
-export const API_BASE_URL = isLocalhost ? DEV_URL : PROD_URL;
+export const API_BASE_URL = PROD_URL;
 
 // API Endpoints
 export const API_ENDPOINTS = {
